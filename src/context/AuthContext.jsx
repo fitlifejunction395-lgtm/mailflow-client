@@ -83,15 +83,26 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
-    // Check URL params for Gmail connection result
+    // Check URL params for Gmail connection result OR Social Login result
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
+
+        // Handle Social Login Token
+        const token = params.get('token');
+        if (token) {
+            localStorage.setItem('accessToken', token);
+            fetchUser();
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
+        // Handle Gmail Connection Status
         if (params.get('gmail') === 'connected') {
             // Refresh user data to get updated Gmail status
             fetchUser();
             // Clean URL
             window.history.replaceState({}, '', window.location.pathname);
         }
+
         if (params.get('error')) {
             console.error('OAuth error:', params.get('error'));
             window.history.replaceState({}, '', window.location.pathname);
