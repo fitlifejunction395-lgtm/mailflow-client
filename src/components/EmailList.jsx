@@ -5,7 +5,7 @@ const EmailList = () => {
     const { emails, loading, currentFolder, pagination, fetchEmails, searchQuery } = useEmail();
 
     return (
-        <div className="w-full flex flex-col h-full overflow-hidden bg-white rounded-2xl border-none shadow-sm mr-4 mb-4">
+        <div className="flex-1 flex flex-col h-full overflow-hidden bg-white rounded-2xl border-none shadow-sm mr-4 mb-4 min-w-0">
             {/* Toolbar */}
             <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between shrink-0 bg-white rounded-t-2xl sticky top-0 z-10">
                 <div className="flex items-center gap-2">

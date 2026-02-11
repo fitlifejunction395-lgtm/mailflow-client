@@ -22,9 +22,9 @@ const EmailViewer = () => {
         if (!dateStr) return '';
         const d = new Date(dateStr);
         return d.toLocaleDateString([], {
-            weekday: 'long',
+            weekday: 'short',
             year: 'numeric',
-            month: 'long',
+            month: 'short',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
@@ -32,24 +32,24 @@ const EmailViewer = () => {
     };
 
     return (
-        <div className="flex-1 flex flex-col h-full overflow-hidden animate-slide-right bg-surface/20">
+        <div className="flex-1 flex flex-col h-full overflow-hidden animate-fade-in bg-white rounded-2xl border border-transparent shadow-sm mr-4 mb-4">
             {/* Toolbar */}
-            <div className="flex items-center gap-1 px-4 py-3 border-b border-border shrink-0">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-border/50 shrink-0 bg-white rounded-t-2xl">
                 <button
                     onClick={() => setSelectedEmail(null)}
-                    className="p-2 rounded-lg hover:bg-surface-hover text-text-secondary transition-colors"
-                    title="Back"
+                    className="p-2 rounded-full hover:bg-surface-hover text-text-secondary transition-colors"
+                    title="Back to list"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </button>
 
-                <div className="flex-1" />
+                <div className="w-[1px] h-6 bg-border mx-2" />
 
                 <button
                     onClick={() => toggleRead(email._id, !email.isRead)}
-                    className="p-2 rounded-lg hover:bg-surface-hover text-text-secondary transition-colors"
+                    className="p-2 rounded-full hover:bg-surface-hover text-text-secondary transition-colors"
                     title={email.isRead ? 'Mark as unread' : 'Mark as read'}
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +63,7 @@ const EmailViewer = () => {
 
                 <button
                     onClick={() => toggleStar(email._id)}
-                    className={`p-2 rounded-lg hover:bg-surface-hover transition-colors ${email.isStarred ? 'text-accent-yellow' : 'text-text-secondary'}`}
+                    className={`p-2 rounded-full hover:bg-surface-hover transition-colors ${email.isStarred ? 'text-accent-yellow' : 'text-text-secondary'}`}
                     title={email.isStarred ? 'Unstar' : 'Star'}
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill={email.isStarred ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2}>
@@ -71,10 +71,17 @@ const EmailViewer = () => {
                     </svg>
                 </button>
 
+                <div className="flex-1" />
+
+                {/* Date */}
+                <span className="text-xs text-text-muted mr-4 hidden sm:inline">
+                    {formatFullDate(email.sentAt || email.createdAt)}
+                </span>
+
                 {currentFolder === 'trash' ? (
                     <button
                         onClick={() => permanentDelete(email._id)}
-                        className="p-2 rounded-lg hover:bg-danger/10 text-danger transition-colors"
+                        className="p-2 rounded-full hover:bg-surface-hover text-text-secondary hover:text-danger transition-colors"
                         title="Delete permanently"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +91,7 @@ const EmailViewer = () => {
                 ) : (
                     <button
                         onClick={() => moveToTrash(email._id)}
-                        className="p-2 rounded-lg hover:bg-surface-hover text-text-secondary hover:text-danger transition-colors"
+                        className="p-2 rounded-full hover:bg-surface-hover text-text-secondary hover:text-danger transition-colors"
                         title="Move to trash"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,66 +102,54 @@ const EmailViewer = () => {
             </div>
 
             {/* Email Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 {/* Subject */}
-                <h1 className="text-2xl font-bold text-text-primary mb-6">{email.subject}</h1>
+                <div className="flex items-start justify-between gap-4 mb-6">
+                    <h1 className="text-[22px] leading-tight font-normal text-text-primary">{email.subject}</h1>
+                    <div className="shrink-0 flex gap-2">
+                        <div className="bg-surface-lighter text-xs px-2 py-1 rounded text-text-secondary">Inbox</div>
+                    </div>
+                </div>
 
                 {/* Sender Info */}
-                <div className="flex items-start gap-4 mb-6">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent-blue flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                <div className="flex items-start gap-4 mb-8">
+                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-medium text-lg shrink-0 select-none">
                         {(email.fromName || email.from).charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-text-primary">
+                        <div className="flex items-baseline gap-2">
+                            <span className="font-bold text-text-primary text-sm">
                                 {email.fromName || email.from}
                             </span>
-                            <span className="text-sm text-text-muted">&lt;{email.from}&gt;</span>
+                            <span className="text-xs text-text-muted">&lt;{email.from}&gt;</span>
                         </div>
-                        <div className="text-sm text-text-muted mt-0.5">
-                            to {email.to?.join(', ')}
-                            {email.cc?.length > 0 && <span>, cc: {email.cc.join(', ')}</span>}
-                        </div>
-                        <div className="text-xs text-text-muted mt-1">
-                            {formatFullDate(email.sentAt || email.createdAt)}
+                        <div className="text-xs text-text-secondary mt-0.5">
+                            to {user?.email && user.email === email.to?.[0] ? 'me' : email.to?.join(', ') || 'me'}
                         </div>
                     </div>
                 </div>
 
                 {/* Body */}
                 <div
-                    className="prose prose-invert max-w-none text-text-primary leading-relaxed text-sm"
+                    className="prose prose-sm max-w-none text-text-primary leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: email.body || email.textBody || '<p class="text-text-muted italic">No content</p>' }}
                 />
             </div>
 
-            {/* Reply Actions */}
-            <div className="border-t border-border px-6 py-4 flex items-center gap-3 shrink-0">
+            {/* Sticky Action Footer */}
+            <div className="p-4 border-t border-border/50 flex gap-2">
                 <button
                     onClick={() => openReply(email)}
-                    className="btn btn-ghost text-sm"
+                    className="btn btn-ghost border border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover px-6"
                 >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                    </svg>
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                     Reply
                 </button>
                 <button
-                    onClick={() => openReplyAll(email)}
-                    className="btn btn-ghost text-sm"
-                >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6M7 10h10a8 8 0 018 8v2" />
-                    </svg>
-                    Reply All
-                </button>
-                <button
                     onClick={() => openForward(email)}
-                    className="btn btn-ghost text-sm"
+                    className="btn btn-ghost border border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover px-6"
                 >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10H11a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" />
-                    </svg>
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10H11a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>
                     Forward
                 </button>
             </div>

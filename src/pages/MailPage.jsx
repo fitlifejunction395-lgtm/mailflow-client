@@ -26,33 +26,35 @@ const MailPage = () => {
     }, [folder]);
 
     return (
-        <div className="h-screen flex flex-col overflow-hidden">
+        <div className="h-screen flex flex-col overflow-hidden bg-surface-light">
             {/* Top Bar */}
             <TopBar />
 
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden relative">
                 {/* Sidebar */}
                 <Sidebar />
 
-                {/* Email List */}
-                <EmailList />
+                {/* Main Content Area */}
+                <main className="flex-1 flex overflow-hidden relative">
 
-                {/* Email Viewer */}
-                {selectedEmail ? (
-                    <EmailViewer />
-                ) : (
-                    <div className="hidden lg:flex flex-1 items-center justify-center">
-                        <div className="text-center animate-fade-in">
-                            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-surface-lighter mb-4">
-                                <svg className="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            <p className="text-text-muted text-lg">Select an email to read</p>
-                            <p className="text-text-muted text-sm mt-1 opacity-60">Click on any email from the list</p>
-                        </div>
-                    </div>
-                )}
+                    {/* LIST VIEW: Visible when no email is selected */}
+                    {!selectedEmail && (
+                        <EmailList />
+                    )}
+
+                    {/* DETAIL VIEW: Visible when email IS selected */}
+                    {selectedEmail && (
+                        <EmailViewer />
+                    )}
+
+                    {/* 
+                     Note: In a true split-view on large screens, we would render both:
+                     <div className={`... ${selectedEmail ? 'hidden lg:flex' : 'flex'}`}> <EmailList /> </div>
+                     {selectedEmail && <EmailViewer />}
+                     for now, standard Gmail behavior (List OR Detail) allows best "fit to screen".
+                    */}
+
+                </main>
             </div>
 
             {/* Compose Modal */}
