@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { useEmail } from '../context/EmailContext';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const EmailViewer = () => {
     const {
@@ -15,6 +17,56 @@ const EmailViewer = () => {
         currentFolder,
     } = useEmail();
     const { user } = useAuth();
+
+    const [summary, setSummary] = useState(null);
+    const [loadingSummary, setLoadingSummary] = useState(false);
+    const [smartReplies, setSmartReplies] = useState([]);
+    const [loadingReplies, setLoadingReplies] = useState(false);
+
+    // Reset AI state when email changes
+    useEffect(() => {
+        setSummary(null);
+        setSmartReplies([]);
+        setLoadingReplies(false);
+    }, [email?._id]);
+
+    const handleSummarize = async () => {
+        if (summary) return; // Already summarized
+        setLoadingSummary(true);
+        try {
+            const { data } = await api.post('/ai/summarize', {
+                content: email.body || email.textBody
+            });
+            if (data.success) {
+                setSummary(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to summarize:', error);
+        } finally {
+            setLoadingSummary(false);
+        }
+    };
+
+    const handleGenerateReplies = async () => {
+        if (smartReplies.length > 0) return;
+        setLoadingReplies(true);
+        try {
+            const { data } = await api.post('/ai/reply', {
+                content: email.body || email.textBody
+            });
+            if (data.success) {
+                setSmartReplies(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to generate replies:', error);
+        } finally {
+            setLoadingReplies(false);
+        }
+    };
+
+    const handleUseSmartReply = (reply) => {
+        openReply(email, reply);
+    };
 
     if (!email) return null;
 
@@ -69,6 +121,22 @@ const EmailViewer = () => {
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill={email.isStarred ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2}>
                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
+                </button>
+
+                {/* AI Summarize Button */}
+                <button
+                    onClick={handleSummarize}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 text-primary text-sm font-medium transition-colors ml-2"
+                    title="Summarize with AI"
+                >
+                    {loadingSummary ? (
+                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    )}
+                    <span>Summarize</span>
                 </button>
 
                 <div className="flex-1" />
@@ -129,11 +197,63 @@ const EmailViewer = () => {
                     </div>
                 </div>
 
+                {/* AI Summary Card */}
+                {summary && (
+                    <div className="mb-8 p-4 rounded-xl bg-gradient-to-r from-indigo-50/80 to-purple-50/80 border border-indigo-100 animate-slide-down">
+                        <div className="flex items-center gap-2 mb-2 text-primary font-medium text-sm">
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                            </svg>
+                            AI Summary
+                        </div>
+                        <p className="text-sm text-text-secondary leading-relaxed">
+                            {summary}
+                        </p>
+                    </div>
+                )}
+
                 {/* Body */}
                 <div
                     className="prose prose-sm max-w-none text-text-primary leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: email.body || email.textBody || '<p class="text-text-muted italic">No content</p>' }}
                 />
+
+                {/* Smart Replies */}
+                <div className="mt-8">
+                    {!loadingReplies && smartReplies.length === 0 && (
+                        <button
+                            onClick={handleGenerateReplies}
+                            className="text-xs font-medium text-primary hover:text-primary-dark transition-colors flex items-center gap-1"
+                        >
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                            Generate AI Replies
+                        </button>
+                    )}
+
+                    {loadingReplies && (
+                        <div className="flex gap-2">
+                            <div className="h-8 w-24 bg-gray-100 rounded-full animate-pulse" />
+                            <div className="h-8 w-32 bg-gray-100 rounded-full animate-pulse" />
+                            <div className="h-8 w-20 bg-gray-100 rounded-full animate-pulse" />
+                        </div>
+                    )}
+
+                    {smartReplies.length > 0 && (
+                        <div className="flex flex-wrap gap-2 animate-fade-in">
+                            {smartReplies.map((reply, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleUseSmartReply(reply)}
+                                    className="px-4 py-1.5 rounded-full border border-border bg-white hover:bg-surface-hover hover:border-primary/30 text-sm text-text-secondary hover:text-primary transition-all shadow-sm"
+                                >
+                                    {reply}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Sticky Action Footer */}

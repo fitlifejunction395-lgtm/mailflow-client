@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useEmail } from '../context/EmailContext';
+import api from '../services/api';
 
 const ComposeModal = () => {
     const {
@@ -20,6 +21,11 @@ const ComposeModal = () => {
     const [showCcBcc, setShowCcBcc] = useState(false);
     const [sending, setSending] = useState(false);
     const [minimized, setMinimized] = useState(false);
+
+    // AI State
+    const [showAiInput, setShowAiInput] = useState(false);
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [generatingAi, setGeneratingAi] = useState(false);
 
     // Prefill fields for reply/forward
     useEffect(() => {
@@ -79,6 +85,23 @@ const ComposeModal = () => {
     const handleClose = () => {
         setComposeOpen(false);
         setComposeData(null);
+    };
+
+    const handleAiGenerate = async () => {
+        if (!aiPrompt.trim()) return;
+        setGeneratingAi(true);
+        try {
+            const { data } = await api.post('/api/ai/draft', { prompt: aiPrompt });
+            if (data.success) {
+                setBody((prev) => (prev ? prev + '\n\n' + data.data : data.data));
+                setShowAiInput(false);
+                setAiPrompt('');
+            }
+        } catch (error) {
+            console.error('AI Draft failed:', error);
+        } finally {
+            setGeneratingAi(false);
+        }
     };
 
     if (minimized) {
@@ -203,13 +226,43 @@ const ComposeModal = () => {
             </div>
 
             {/* Body */}
-            <div className="flex-1 overflow-y-auto px-4">
+            <div className="flex-1 overflow-y-auto px-4 relative">
                 <textarea
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
                     className="w-full h-full min-h-[200px] bg-transparent text-sm text-text-primary outline-none resize-none py-4 placeholder:text-text-muted leading-relaxed"
                     placeholder="Write your email..."
                 />
+
+                {/* AI Input Popover */}
+                {showAiInput && (
+                    <div className="absolute bottom-4 left-4 right-4 bg-white rounded-xl shadow-xl border border-border p-3 flex flex-col gap-2 animate-slide-up z-10">
+                        <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs">
+                                ✨
+                            </div>
+                            <span className="text-xs font-semibold text-text-primary">Help me write</span>
+                            <button onClick={() => setShowAiInput(false)} className="ml-auto text-text-muted hover:text-text-primary">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        <textarea
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                            className="w-full bg-surface-light rounded p-2 text-sm outline-none resize-none"
+                            placeholder="e.g. Ask for a meeting next Tuesday..."
+                            rows={2}
+                            autoFocus
+                        />
+                        <button
+                            onClick={handleAiGenerate}
+                            disabled={!aiPrompt.trim() || generatingAi}
+                            className="self-end bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-medium px-4 py-1.5 rounded-full transition-all disabled:opacity-50"
+                        >
+                            {generatingAi ? 'Generating...' : 'Create Draft'}
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Footer */}
@@ -233,6 +286,17 @@ const ComposeModal = () => {
                                 Send
                             </>
                         )}
+                    </button>
+
+                    {/* AI Button */}
+                    <button
+                        onClick={() => setShowAiInput(!showAiInput)}
+                        className="p-2 rounded-full hover:bg-surface-hover text-text-secondary transition-colors"
+                        title="Help me write"
+                    >
+                        <svg className="w-5 h-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
                     </button>
                 </div>
 
