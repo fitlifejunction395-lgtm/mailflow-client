@@ -15,7 +15,7 @@ const Sidebar = () => {
     const { folder: activeFolder } = useParams();
     const current = activeFolder || 'inbox';
     const { counts, setSelectedEmail, setComposeOpen, setComposeData } = useEmail();
-    const { user, logout, connectGmail, disconnectGmail } = useAuth();
+    const { user, connectGmail, disconnectGmail, logout } = useAuth();
 
     const handleCompose = () => {
         setComposeData(null);
@@ -33,44 +33,45 @@ const Sidebar = () => {
     };
 
     return (
-        <aside className="w-64 shrink-0 flex flex-col h-full bg-surface-light hidden md:flex pr-4">
+        <aside className="shrink-0 flex flex-col h-full bg-surface-light hidden md:flex pr-2 w-[256px] lg:w-[280px]">
             {/* Compose Button */}
-            <div className="pl-2 pr-4 pt-4 pb-4">
+            <div className="pl-4 pr-4 pt-4 pb-0">
                 <button
                     onClick={handleCompose}
-                    className="btn btn-compose flex items-center gap-3 text-on-primary-container"
+                    className="flex items-center gap-3 px-6 h-14 bg-primary-light hover:shadow-md transition-shadow rounded-2xl text-on-primary-container min-w-[140px]"
                 >
                     <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor" />
                     </svg>
-                    <span className="text-sm">Compose</span>
+                    <span className="text-sm font-medium">Compose</span>
                 </button>
             </div>
 
             {/* Folders */}
-            <nav className="flex-1 space-y-1 overflow-y-auto">
+            <nav className="flex-1 space-y-0.5 overflow-y-auto pl-0 mt-4">
                 {folders.map((f) => {
                     const isActive = current === f.id;
                     const count = getCount(f.id);
                     return (
-                        <div key={f.id} className="pl-0">
+                        <div key={f.id} className="pr-4">
                             <button
                                 onClick={() => handleFolderClick(f.id)}
-                                className={`w-full flex items-center gap-4 px-6 py-1.5 rounded-r-full text-sm font-medium transition-colors ${isActive
-                                        ? 'bg-primary-light text-primary-dark font-bold'
+                                className={`w-full flex items-center gap-4 px-6 h-8 rounded-r-full text-sm font-medium transition-colors ${isActive
+                                        ? 'bg-primary-light/50 text-blue-800 font-bold'
                                         : 'text-text-primary hover:bg-surface-hover'
                                     }`}
                             >
                                 <svg
-                                    className={`w-5 h-5 shrink-0 ${isActive ? 'text-primary-dark' : 'text-text-secondary'}`}
+                                    className={`w-5 h-5 shrink-0 ${isActive ? 'fill-current' : 'fill-none stroke-current stroke-2'}`}
                                     viewBox="0 0 24 24"
-                                    fill="currentColor"
+                                    fill={isActive ? "currentColor" : "none"}
+                                    stroke="currentColor"
                                 >
-                                    <path d={f.icon} />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d={f.icon} />
                                 </svg>
                                 <span className="flex-1 text-left">{f.label}</span>
                                 {count > 0 && (
-                                    <span className={`text-xs font-bold ${isActive ? 'text-primary-dark' : 'text-text-secondary'
+                                    <span className={`text-xs font-bold ${isActive ? 'text-blue-800' : 'text-text-secondary'
                                         }`}>
                                         {count}
                                     </span>
@@ -81,25 +82,20 @@ const Sidebar = () => {
                 })}
             </nav>
 
-            {/* Gmail Connection & Profile */}
-            <div className="mt-2 px-4 pb-4">
+            {/* Gmail Connection Indicator */}
+            <div className="mt-auto px-4 pb-6">
                 {user?.isGmailConnected ? (
-                    <div className="mb-4">
-                        <p className="text-xs font-medium text-text-secondary mb-1 px-2">Connected as</p>
-                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-full bg-white border border-border shadow-sm">
-                            <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
-                            <span className="text-xs text-text-primary truncate flex-1">{user.googleEmail}</span>
-                            <button onClick={disconnectGmail} className="text-text-muted hover:text-danger p-1">
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-border shadow-sm">
+                        <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-text-primary">Gmail Connected</p>
+                            <p className="text-[10px] text-text-muted truncate">{user.googleEmail}</p>
                         </div>
                     </div>
                 ) : (
                     <button
                         onClick={connectGmail}
-                        className="w-full mb-4 flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-border bg-white hover:bg-surface-hover transition-colors text-sm font-medium text-text-primary"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-border bg-white hover:bg-surface-hover transition-colors text-xs font-medium text-text-primary shadow-sm"
                     >
                         <svg className="w-4 h-4" viewBox="0 0 24 24">
                             <path fill="#EA4335" d="M12 24c3.27 0 5.96-1.35 7.94-3.55l-3.9-3.05c-1.1.75-2.5 1.2-4.04 1.2-3.1 0-5.73-2.1-6.66-4.9H1.2v3.1C3.15 20.65 7.25 24 12 24z" />
@@ -110,21 +106,6 @@ const Sidebar = () => {
                         Connect Gmail
                     </button>
                 )}
-
-                <div className="flex items-center gap-3 pt-4 border-t border-border">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-medium text-sm">
-                        {user?.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-text-primary truncate">{user?.name}</p>
-                        <p className="text-xs text-text-muted truncate">{user?.email}</p>
-                    </div>
-                    <button onClick={logout} className="text-text-muted hover:text-text-primary p-1" title="Logout">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                    </button>
-                </div>
             </div>
         </aside>
     );
