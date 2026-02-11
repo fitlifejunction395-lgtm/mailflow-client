@@ -91,7 +91,7 @@ const ComposeModal = () => {
         if (!aiPrompt.trim()) return;
         setGeneratingAi(true);
         try {
-            const { data } = await api.post('/api/ai/draft', { prompt: aiPrompt });
+            const { data } = await api.post('/ai/draft', { prompt: aiPrompt });
             if (data.success) {
                 setBody((prev) => (prev ? prev + '\n\n' + data.data : data.data));
                 setShowAiInput(false);
@@ -99,6 +99,7 @@ const ComposeModal = () => {
             }
         } catch (error) {
             console.error('AI Draft failed:', error);
+            alert('Failed to generate draft. Please try again.');
         } finally {
             setGeneratingAi(false);
         }
