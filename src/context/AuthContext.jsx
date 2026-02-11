@@ -85,28 +85,43 @@ export const AuthProvider = ({ children }) => {
 
     // Check URL params for Gmail connection result OR Social Login result
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
+        const checkAuth = async () => {
+            const params = new URLSearchParams(window.location.search);
 
-        // Handle Social Login Token
-        const token = params.get('token');
-        if (token) {
-            localStorage.setItem('accessToken', token);
-            fetchUser();
-            window.history.replaceState({}, '', window.location.pathname);
-        }
+            // Handle Social Login Token
+            const token = params.get('token');
+            if (token) {
+                console.log('🔗 Found token in URL, attempting login...');
+                localStorage.setItem('accessToken', token);
 
-        // Handle Gmail Connection Status
-        if (params.get('gmail') === 'connected') {
-            // Refresh user data to get updated Gmail status
-            fetchUser();
-            // Clean URL
-            window.history.replaceState({}, '', window.location.pathname);
-        }
+                // Clear URL immediately to avoid duplicate processing
+                window.history.replaceState({}, '', window.location.pathname);
 
-        if (params.get('error')) {
-            console.error('OAuth error:', params.get('error'));
-            window.history.replaceState({}, '', window.location.pathname);
-        }
+                try {
+                    await fetchUser();
+                    console.log('✅ Social login successful');
+                } catch (err) {
+                    console.error('❌ Social login failed:', err);
+                    alert('Login failed. Please try again.');
+                }
+                return; // Stop processing
+            }
+
+            // Handle Gmail Connection Status
+            if (params.get('gmail') === 'connected') {
+                console.log('🔗 Gmail connected param found');
+                await fetchUser();
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+
+            if (params.get('error')) {
+                console.error('OAuth error param:', params.get('error'));
+                // alert(`Authentication error: ${params.get('error')}`); // Optional: alert user
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+        };
+
+        checkAuth();
     }, []);
 
     return (
