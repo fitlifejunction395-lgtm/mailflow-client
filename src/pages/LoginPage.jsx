@@ -28,11 +28,13 @@ const LoginPage = () => {
     const handleGoogleLogin = async () => {
         try {
             // Fetch the login URL from the backend
-            const { data } = await api.get('/auth/google/login'); // api base is /api
+            // Using /auth/google/login to avoid conflict if any, but backend is now mounted at /api/auth and route is /google/login
+            const { data } = await api.get('/auth/google/login');
+            console.log('Google Login URL:', data.url);
             window.location.href = data.url;
         } catch (error) {
-            console.error('Failed to get Google Login URL', error);
-            setError('Failed to initiate Google Login.');
+            console.error('Failed to get Google Login URL:', error);
+            setError(`Failed to initiate Google Login: ${error.message}`);
         }
     };
 

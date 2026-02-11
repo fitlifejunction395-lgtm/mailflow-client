@@ -43,7 +43,7 @@ const EmailItem = ({ email }) => {
         <div
             onClick={handleClick}
             className={`group flex items-center gap-3 px-4 py-2 cursor-pointer border-b border-border/50 hover:shadow-sm hover:z-10 relative transition-colors ${isSelected ? 'bg-primary-light/30' :
-                    isUnread ? 'bg-white' : 'bg-surface-light/40' // Read emails have slight gray tint
+                    isUnread ? 'bg-white' : 'bg-[#f2f6fc] text-text-secondary'
                 } hover:bg-surface-hover`}
         >
             {/* Checkbox (Mock) */}
@@ -64,23 +64,23 @@ const EmailItem = ({ email }) => {
             </button>
 
             {/* Sender */}
-            <div className={`w-40 md:w-48 truncate shrink-0 ${isUnread ? 'text-text-primary font-bold' : 'text-text-primary'}`}>
+            <div className={`w-40 md:w-48 truncate shrink-0 ${isUnread ? 'text-text-primary font-bold' : 'text-text-primary font-normal'}`}>
                 {email.fromName || email.from}
             </div>
 
             {/* Subject - Snippet */}
             <div className="flex-1 min-w-0 flex items-center gap-1 text-sm text-text-secondary truncate pr-2">
-                <span className={`truncate text-text-primary ${isUnread ? 'font-bold' : ''}`}>
+                <span className={`truncate ${isUnread ? 'text-text-primary font-bold' : 'text-text-primary font-normal'}`}>
                     {email.subject || '(no subject)'}
                 </span>
                 <span className="text-text-muted shrink-0">-</span>
-                <span className="text-text-muted truncate">
+                <span className="text-text-muted truncate font-normal">
                     {getSnippet(email.body || email.textBody)}
                 </span>
             </div>
 
             {/* Date */}
-            <div className={`text-xs ml-auto shrink-0 w-[70px] text-right font-medium ${isUnread ? 'text-text-primary font-bold' : 'text-text-secondary'}`}>
+            <div className={`text-xs ml-auto shrink-0 w-[90px] text-right font-medium whitespace-nowrap ${isUnread ? 'text-text-primary font-bold' : 'text-text-secondary font-normal'}`}>
                 {formatDate(email.sentAt || email.createdAt)}
             </div>
         </div>
