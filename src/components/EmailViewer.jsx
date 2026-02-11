@@ -42,6 +42,7 @@ const EmailViewer = () => {
             }
         } catch (error) {
             console.error('Failed to summarize:', error);
+            alert(`Failed to summarize: ${error.response?.data?.message || error.message}`);
         } finally {
             setLoadingSummary(false);
         }
@@ -59,6 +60,7 @@ const EmailViewer = () => {
             }
         } catch (error) {
             console.error('Failed to generate replies:', error);
+            alert(`Failed: ${error.response?.data?.message || error.message}`);
         } finally {
             setLoadingReplies(false);
         }

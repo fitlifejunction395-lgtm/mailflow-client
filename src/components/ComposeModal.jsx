@@ -99,7 +99,7 @@ const ComposeModal = () => {
             }
         } catch (error) {
             console.error('AI Draft failed:', error);
-            alert('Failed to generate draft. Please try again.');
+            alert(`Failed: ${error.response?.data?.message || error.message}`);
         } finally {
             setGeneratingAi(false);
         }
